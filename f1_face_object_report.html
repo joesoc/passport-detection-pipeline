@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Knowledge Discovery Media Server F1 Benchmark Report – FaceDetection_ObjectRecognition</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f4f8;
+      color: #333;
+      padding: 30px 40px;
+    }
+    header { margin-bottom: 28px; }
+    header h1 { font-size: 1.8rem; color: #1a3a5c; }
+    header h2 { font-size: 1.1rem; color: #4a90d9; margin-top: 4px; font-weight: normal; }
+    header p.meta { font-size: 0.85rem; color: #888; margin-top: 6px; }
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: 16px;
+      margin-bottom: 30px;
+    }
+    .stat-card {
+      background: #fff;
+      border-radius: 10px;
+      padding: 18px 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      border-top: 4px solid #4a90d9;
+    }
+    .stat-card.green  { border-top-color: #27ae60; }
+    .stat-card.red    { border-top-color: #e74c3c; }
+    .stat-card.orange { border-top-color: #f39c12; }
+    .stat-card.teal   { border-top-color: #16a085; }
+    .stat-card.purple { border-top-color: #8e44ad; }
+    .stat-card.gold   { border-top-color: #f1c40f; }
+    .stat-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: #1a3a5c;
+      line-height: 1.1;
+    }
+    .stat-value.big  { font-size: 2.6rem; }
+    .stat-label {
+      font-size: 0.78rem;
+      color: #888;
+      margin-top: 5px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .card {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      overflow: hidden;
+      margin-bottom: 24px;
+    }
+    .card h3 {
+      padding: 14px 18px;
+      background: #1a3a5c;
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    thead tr { background: #2c5f8a; color: #fff; }
+    thead th {
+      padding: 10px 12px;
+      text-align: left;
+      font-size: 0.82rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    tbody tr { border-bottom: 1px solid #eef0f3; transition: background 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #f5f9ff; }
+    tbody tr.row-pass { background: #f0fff4; }
+    tbody tr.row-fail { background: #fff5f5; }
+    tbody tr.row-fp   { background: #fffdf0; }
+    tbody tr.row-error { background: #fef0f0; }
+    tbody tr.row-pass:hover { background: #e6ffee; }
+    tbody tr.row-fail:hover { background: #ffe8e8; }
+    tbody tr.row-fp:hover   { background: #fff9e0; }
+    td { padding: 8px 12px; font-size: 0.85rem; }
+    .mono { font-family: 'Cascadia Code', 'Consolas', monospace; font-size: 0.82rem; }
+    .time-cell { color: #2c7be5; font-weight: 600; }
+    .badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .badge.pass  { background: #d4edda; color: #155724; }
+    .badge.fail  { background: #f8d7da; color: #721c24; }
+    .badge.fp    { background: #fff3cd; color: #856404; }
+    .badge.error { background: #f8d7da; color: #721c24; }
+    .set-tag {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 8px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .set-tp { background: #d4edda; color: #155724; }
+    .set-fp { background: #f8d7da; color: #721c24; }
+    .confusion-grid {
+      display: grid;
+      grid-template-columns: 120px 1fr 1fr;
+      gap: 2px;
+      margin: 16px 18px;
+    }
+    .confusion-grid .header { font-weight: 700; text-align: center; padding: 8px; background: #eef0f3; font-size: 0.85rem; }
+    .confusion-grid .cell {
+      text-align: center;
+      padding: 16px;
+      font-size: 1.4rem;
+      font-weight: 700;
+      border-radius: 6px;
+    }
+    .cell.tp { background: #d4edda; color: #155724; }
+    .cell.fn { background: #f8d7da; color: #721c24; }
+    .cell.fp { background: #fff3cd; color: #856404; }
+    .cell.tn { background: #d4edda; color: #155724; }
+    .insights {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      padding: 18px 24px;
+      margin-bottom: 24px;
+    }
+    .insights h3 { color: #1a3a5c; margin-bottom: 10px; }
+    .insights ul { padding-left: 20px; }
+    .insights li { margin-bottom: 8px; font-size: 0.9rem; line-height: 1.5; }
+    .insights code {
+      background: #eef0f3;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: 'Cascadia Code', 'Consolas', monospace;
+      font-size: 0.82rem;
+    }
+    .pipeline-flow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      padding: 16px 18px;
+      background: #f7f9fc;
+      border-radius: 8px;
+      margin: 16px 18px;
+    }
+    .pipeline-step {
+      background: #1a3a5c;
+      color: #fff;
+      padding: 8px 16px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      font-weight: 600;
+    }
+    .pipeline-arrow { color: #888; font-size: 1.2rem; }
+    footer {
+      margin-top: 30px;
+      font-size: 0.8rem;
+      color: #aaa;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📊 Knowledge Discovery Media Server F1 Benchmark Report</h1>
+    <h2>Pipeline: <strong>FaceDetection → Lua Filter → ObjectRecognition</strong></h2>
+    <p class="meta">Config: <strong>FaceDetection_ObjectRecognition</strong> &mdash; Generated: 2026-06-16 20:08:57 &mdash; Duration: 53.8s</p>
+  </header>
+
+  <!-- F1 Score Card -->
+  <div class="stats-grid">
+    <div class="stat-card gold">
+      <div class="stat-value big" style="color: #27ae60">1.000</div>
+      <div class="stat-label">F1 Score — Excellent</div>
+    </div>
+    <div class="stat-card teal">
+      <div class="stat-value">1.000</div>
+      <div class="stat-label">Precision</div>
+    </div>
+    <div class="stat-card purple">
+      <div class="stat-value">1.000</div>
+      <div class="stat-label">Recall</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">1.000</div>
+      <div class="stat-label">Accuracy</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">1.000</div>
+      <div class="stat-label">Specificity (TNR)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">21</div>
+      <div class="stat-label">Total Files</div>
+    </div>
+  </div>
+
+  <!-- Pipeline Flow -->
+  <div class="card">
+    <h3>⚙️ Pipeline Configuration</h3>
+    <div class="pipeline-flow">
+      <span class="pipeline-step">Source (file)</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">FaceDetect</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">FaceFilter (Lua)</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">ObjectRecognition</span>
+      <span class="pipeline-arrow">→</span>
+      <span class="pipeline-step">Result</span>
+    </div>
+  </div>
+
+  <!-- Confusion Matrix -->
+  <div class="card">
+    <h3>🎯 Confusion Matrix</h3>
+    <div class="confusion-grid">
+      <div class="header"></div>
+      <div class="header">Predicted: Passport</div>
+      <div class="header">Predicted: No Passport</div>
+      <div class="header">Actual: Passport</div>
+      <div class="cell tp">TP = 13</div>
+      <div class="cell fn">FN = 0</div>
+      <div class="header">Actual: No Passport</div>
+      <div class="cell fp">FP = 0</div>
+      <div class="cell tn">TN = 8</div>
+    </div>
+  </div>
+
+  <!-- Per-Set Performance -->
+  <div class="stats-grid">
+    <div class="stat-card green">
+      <div class="stat-value">13</div>
+      <div class="stat-label">TP Set (Passport Files)</div>
+    </div>
+    <div class="stat-card red">
+      <div class="stat-value">8</div>
+      <div class="stat-label">FP Set (Non-Passport)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">15</div>
+      <div class="stat-label">Files w/ Face Detected</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">14</div>
+      <div class="stat-label">Files w/ Object Recognized</div>
+    </div>
+    <div class="stat-card teal">
+      <div class="stat-value">2.56 s</div>
+      <div class="stat-label">Avg Response Time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">53.74 s</div>
+      <div class="stat-label">Total Processing Time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">2.33 s</div>
+      <div class="stat-label">TP Avg Time</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value">2.93 s</div>
+      <div class="stat-label">FP Avg Time</div>
+    </div>
+  </div>
+
+          <h3>🔍 Face Detection Details</h3>
+        <div class="stats-grid">
+          <div class="stat-card"><div class="stat-value">15</div><div class="stat-label">Files w/ Faces</div></div>
+          <div class="stat-card teal"><div class="stat-value">77.53%</div><div class="stat-label">Avg Face Confidence</div></div>
+          <div class="stat-card"><div class="stat-value">43%</div><div class="stat-label">Min Face Confidence</div></div>
+          <div class="stat-card"><div class="stat-value">90%</div><div class="stat-label">Max Face Confidence</div></div>
+        </div>
+
+  <div class='insights'><h3>💡 Optimization Recommendations</h3><ul><li>2 false-positive images had faces but were correctly NOT flagged as passports. Face filter is working as a good gate.</li></ul></div>
+
+  <!-- Detailed Results Table -->
+  <div class="card">
+    <h3>📋 Detailed Results — Per File</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Filename</th>
+          <th>Set</th>
+          <th>Size</th>
+          <th>Face Detection</th>
+          <th>Object Recognition</th>
+          <th>Object Identities</th>
+          <th>Result</th>
+          <th>Time</th>
+        </tr>
+      </thead>
+      <tbody>
+                <tr class="row-pass">
+          <td>1</td>
+          <td class="mono" title="C:\IDOL\images\TP\Ashley Passport (2 pages).jpg">Ashley Passport (2 pages).jpg</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>1660.9 KB</td>
+          <td>✓ (2 faces, 87%)</td>
+          <td>✓ (2 objs, 85%)</td>
+          <td class="mono">AUS_Passport (Documents)(85), AUS_Passport (Documents)(85)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">15.95 s</td>
+        </tr>        <tr class="row-pass">
+          <td>2</td>
+          <td class="mono" title="C:\IDOL\images\TP\AU ppt-45dAngle.png">AU ppt-45dAngle.png</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>8768 KB</td>
+          <td>✓ (2 faces, 64%)</td>
+          <td>✓ (2 objs, 76%)</td>
+          <td class="mono">AUS_Passport (Documents)(76), AUS_Passport (Documents)(76)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">640 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>3</td>
+          <td class="mono" title="C:\IDOL\images\TP\AU ppt.jpg">AU ppt.jpg</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>69.1 KB</td>
+          <td>✓ (3 faces, 86.67%)</td>
+          <td>✓ (3 objs, 91%)</td>
+          <td class="mono">AUS_Passport (Documents)(91), AUS_Passport (Documents)(91), AUS_Passport (Documents)(91)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">317 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>4</td>
+          <td class="mono" title="C:\IDOL\images\TP\AU ppt40dAngle.png">AU ppt40dAngle.png</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>8896.2 KB</td>
+          <td>✓ (2 faces, 63%)</td>
+          <td>✓ (2 objs, 69%)</td>
+          <td class="mono">AUS_Passport (Documents)(69), AUS_Passport (Documents)(69)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">618 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>5</td>
+          <td class="mono" title="C:\IDOL\images\TP\Chang Anthony Passport (2 pages).jpg">Chang Anthony Passport (2 pages).jpg</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>1066.8 KB</td>
+          <td>✓ (2 faces, 89.5%)</td>
+          <td>✓ (2 objs, 85%)</td>
+          <td class="mono">AUS_Passport (Documents)(85), AUS_Passport (Documents)(85)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">1.8 s</td>
+        </tr>        <tr class="row-pass">
+          <td>6</td>
+          <td class="mono" title="C:\IDOL\images\TP\Doe John Passport (2 pages).jpg">Doe John Passport (2 pages).jpg</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>93 KB</td>
+          <td>✓ (2 faces, 90%)</td>
+          <td>✓ (2 objs, 91%)</td>
+          <td class="mono">AUS_Passport (Documents)(91), AUS_Passport (Documents)(91)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">389 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>7</td>
+          <td class="mono" title="C:\IDOL\images\TP\Gallon Shamika Passport (2 pages).jpg">Gallon Shamika Passport (2 pages).jpg</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>99.9 KB</td>
+          <td>✓ (2 faces, 84.5%)</td>
+          <td>✓ (2 objs, 94%)</td>
+          <td class="mono">AUS_Passport (Documents)(94), AUS_Passport (Documents)(94)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">517 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>8</td>
+          <td class="mono" title="C:\IDOL\images\TP\John Passport.jpg">John Passport.jpg</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>45.5 KB</td>
+          <td>✓ (2 faces, 84%)</td>
+          <td>✓ (2 objs, 89%)</td>
+          <td class="mono">AUS_Passport (Documents)(89), AUS_Passport (Documents)(89)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">381 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>9</td>
+          <td class="mono" title="C:\IDOL\images\TP\McGrath Passport.jpg">McGrath Passport.jpg</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>339.5 KB</td>
+          <td>✓ (2 faces, 85%)</td>
+          <td>✓ (2 objs, 95%)</td>
+          <td class="mono">AUS_Passport (Documents)(95), AUS_Passport (Documents)(95)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">373 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>10</td>
+          <td class="mono" title="C:\IDOL\images\TP\Michael Nicholas Passport (2 pages).jpg">Michael Nicholas Passport (2 pages).jpg</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>3414.4 KB</td>
+          <td>✓ (1 faces, 68%)</td>
+          <td>✓ (1 objs, 89%)</td>
+          <td class="mono">AUS_Passport (Documents)(89)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">7.83 s</td>
+        </tr>        <tr class="row-pass">
+          <td>11</td>
+          <td class="mono" title="C:\IDOL\images\TP\Paxton Mia Passport.jpg">Paxton Mia Passport.jpg</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>52.8 KB</td>
+          <td>✓ (1 faces, 88%)</td>
+          <td>✓ (1 objs, 97%)</td>
+          <td class="mono">AUS_Passport (Documents)(97)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">263 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>12</td>
+          <td class="mono" title="C:\IDOL\images\TP\Pham Quang Manh Passport.png">Pham Quang Manh Passport.png</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>645.6 KB</td>
+          <td>✓ (2 faces, 88%)</td>
+          <td>✓ (2 objs, 56%)</td>
+          <td class="mono">AUS_Passport (Documents)(56), AUS_Passport (Documents)(56)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">488 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>13</td>
+          <td class="mono" title="C:\IDOL\images\TP\Shepherd Michelle Passport (1 Page).jpg">Shepherd Michelle Passport (1 Page).jpg</td>
+          <td><span class="set-tag set-tp">TP</span></td>
+          <td>57.1 KB</td>
+          <td>✓ (1 faces, 88%)</td>
+          <td>✓ (1 objs, 63%)</td>
+          <td class="mono">AUS_Passport (Documents)(63)</td>
+          <td><span class="badge pass">TP ✓</span></td>
+          <td class="mono time-cell">736 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>14</td>
+          <td class="mono" title="C:\IDOL\images\FP\ED321693.pdf">ED321693.pdf</td>
+          <td><span class="set-tag set-fp">FP</span></td>
+          <td>1163.5 KB</td>
+          <td>✗</td>
+          <td>✗</td>
+          <td class="mono"></td>
+          <td><span class="badge pass">TN ✓</span></td>
+          <td class="mono time-cell">5.44 s</td>
+        </tr>        <tr class="row-pass">
+          <td>15</td>
+          <td class="mono" title="C:\IDOL\images\FP\GA10819.pdf">GA10819.pdf</td>
+          <td><span class="set-tag set-fp">FP</span></td>
+          <td>2029.4 KB</td>
+          <td>✓ (2 faces, 66.5%)</td>
+          <td>✗</td>
+          <td class="mono"></td>
+          <td><span class="badge pass">TN ✓</span></td>
+          <td class="mono time-cell">3.6 s</td>
+        </tr>        <tr class="row-pass">
+          <td>16</td>
+          <td class="mono" title="C:\IDOL\images\FP\invoice_2001321.pdf">invoice_2001321.pdf</td>
+          <td><span class="set-tag set-fp">FP</span></td>
+          <td>22.3 KB</td>
+          <td>✗</td>
+          <td>✗</td>
+          <td class="mono"></td>
+          <td><span class="badge pass">TN ✓</span></td>
+          <td class="mono time-cell">251 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>17</td>
+          <td class="mono" title="C:\IDOL\images\FP\large.png">large.png</td>
+          <td><span class="set-tag set-fp">FP</span></td>
+          <td>54.4 KB</td>
+          <td>✗</td>
+          <td>✗</td>
+          <td class="mono"></td>
+          <td><span class="badge pass">TN ✓</span></td>
+          <td class="mono time-cell">76 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>18</td>
+          <td class="mono" title="C:\IDOL\images\FP\map.jpg">map.jpg</td>
+          <td><span class="set-tag set-fp">FP</span></td>
+          <td>1262.9 KB</td>
+          <td>✗</td>
+          <td>✗</td>
+          <td class="mono"></td>
+          <td><span class="badge pass">TN ✓</span></td>
+          <td class="mono time-cell">109 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>19</td>
+          <td class="mono" title="C:\IDOL\images\FP\Public-Consultation-Submission-Defining-an-Australian-Business-for-Commonwealth-Procurement-Redacted.pdf">Public-Consultation-Submission-Defining-an-Australian-Business-for-Commonwealth-Procurement-Redacted.pdf</td>
+          <td><span class="set-tag set-fp">FP</span></td>
+          <td>71.8 KB</td>
+          <td>✗</td>
+          <td>✗</td>
+          <td class="mono"></td>
+          <td><span class="badge pass">TN ✓</span></td>
+          <td class="mono time-cell">443 ms</td>
+        </tr>        <tr class="row-pass">
+          <td>20</td>
+          <td class="mono" title="C:\IDOL\images\FP\slwa_b7141529_1.pdf">slwa_b7141529_1.pdf</td>
+          <td><span class="set-tag set-fp">FP</span></td>
+          <td>5736.7 KB</td>
+          <td>✓ (8 faces, 66.12%)</td>
+          <td>✓ (0 objs, 0%)</td>
+          <td class="mono"></td>
+          <td><span class="badge pass">TN ✓</span></td>
+          <td class="mono time-cell">9.72 s</td>
+        </tr>        <tr class="row-pass">
+          <td>21</td>
+          <td class="mono" title="C:\IDOL\images\FP\waste-to-energy-facility-environmental-record.pdf">waste-to-energy-facility-environmental-record.pdf</td>
+          <td><span class="set-tag set-fp">FP</span></td>
+          <td>1993.6 KB</td>
+          <td>✗</td>
+          <td>✗</td>
+          <td class="mono"></td>
+          <td><span class="badge pass">TN ✓</span></td>
+          <td class="mono time-cell">3.8 s</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <footer>
+    IDOL MediaServer F1 Benchmark &mdash; FaceDetection_ObjectRecognition &mdash; 2026-06-16 20:08:57 &mdash; TP: C:\IDOL\images\TP &mdash; FP: C:\IDOL\images\FP
+  </footer>
+</body>
+</html>
