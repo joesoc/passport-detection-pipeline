@@ -437,22 +437,22 @@ function New-HtmlReport {
         if ($r.Set -eq "TP" -and $r.PassportDetected) {
             $rowClass = "row-pass"
             $statusBadge = "badge pass"
-            $statusLabel = "TP ✓"
+            $statusLabel = "TP +"
         }
         elseif ($r.Set -eq "TP" -and -not $r.PassportDetected) {
             $rowClass = "row-fail"
             $statusBadge = "badge fail"
-            $statusLabel = "FN ✗"
+            $statusLabel = "FN -"
         }
         elseif ($r.Set -eq "FP" -and -not $r.PassportDetected) {
             $rowClass = "row-pass"
             $statusBadge = "badge pass"
-            $statusLabel = "TN ✓"
+            $statusLabel = "TN +"
         }
         elseif ($r.Set -eq "FP" -and $r.PassportDetected) {
             $rowClass = "row-fp"
             $statusBadge = "badge fp"
-            $statusLabel = "FP ⚠"
+            $statusLabel = "FP !!"
         }
         
         if (-not $r.Success) {
@@ -461,8 +461,8 @@ function New-HtmlReport {
             $statusLabel = "ERR"
         }
 
-        $faceInfo = if ($r.FaceDetected) { "✓ ($($r.FaceCount) faces, $($r.FaceConfidence)%)" } else { "✗" }
-        $objInfo = if ($r.ObjectRecognized) { "✓ ($($r.ObjectCount) objs, $($r.ObjectConfidence)%)" } else { "✗" }
+        $faceInfo = if ($r.FaceDetected) { "+ ($($r.FaceCount) faces, $($r.FaceConfidence)%)" } else { "-" }
+        $objInfo = if ($r.ObjectRecognized) { "+ ($($r.ObjectCount) objs, $($r.ObjectConfidence)%)" } else { "-" }
         
         $objectIdentities = ""
         if ($r.ObjectDetails.Count -gt 0) {
