@@ -6,7 +6,6 @@ IDOL MediaServer pipeline that detects faces in images, filters candidates via a
 |---|---|
 | `FaceDetection_ObjectRecognition.cfg` | MediaServer pipeline configuration (FaceDetect → Lua Filter → ObjectRecognition) |
 | `faceFilter.lua` | Lua script that gates which detected faces proceed to object recognition |
-| `objectConfidenceFilter.lua` | Lua script that filters object recognition results by confidence |
 | `run_f1_test.ps1` | PowerShell benchmark script — sends images through the pipeline and computes F1 metrics |
 | `f1_face_object_report.html` | Sample/generated HTML report with confusion matrix and per-file details |
 
@@ -64,13 +63,12 @@ IDOL MediaServer pipeline that detects faces in images, filters candidates via a
 ## Pipeline Flow
 
 ```
-Source (image file) → FaceDetect → faceFilter.lua → ObjectRecognition → objectConfidenceFilter.lua → Result
+Source (image file) → FaceDetect → faceFilter.lua → ObjectRecognition → Result
 ```
 
 - **FaceDetect**: Locates faces in the image and returns position/confidence/angle metadata.
 - **faceFilter.lua**: Filters face results (e.g., requires sufficient frontal angle, minimum size) before allowing object recognition.
-- **ObjectRecognition**: Identifies objects (passports) in the face regions.
-- **objectConfidenceFilter.lua**: Filters object results by confidence threshold (≥ 55%).
+- **ObjectRecognition**: Identifies objects (passports) in the face regions. Confidence threshold filtering (≥ 55%) is applied in the PowerShell benchmark script.
 
 ## License
 
