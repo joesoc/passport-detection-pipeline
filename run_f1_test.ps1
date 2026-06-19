@@ -8,8 +8,14 @@ param(
     [string]$TPFolder = "C:\IDOL\images\TP",
     [string]$FPFolder = "C:\IDOL\images\FP",
     [string]$OutputReport = "C:\IDOL\code\reports\f1_face_object_report.html",
-    [int]$TimeoutSec = 120
+    [int]$TimeoutSec = 120,
+    [switch]$UseHttps
 )
+
+# Convert URL scheme from HTTP to HTTPS when the -UseHttps flag is set
+if ($UseHttps) {
+    $MediaServerUrl = $MediaServerUrl -replace '^http://', 'https://'
+}
 
 $ErrorActionPreference = "Stop"
 $script:StartTime = Get-Date
@@ -790,6 +796,9 @@ Write-Host "╔═════════════════════�
 Write-Host "║   FaceDetection + ObjectRecognition F1 Benchmark    ║" -ForegroundColor Cyan
 Write-Host "╚══════════════════════════════════════════════════════╝" -ForegroundColor Cyan
 Write-Host ""
+$protocol = if ($UseHttps) { "HTTPS" } else { "HTTP" }
+Write-Log "Protocol: $protocol"
+Write-Log "Server URL: $MediaServerUrl"
 Write-Log "Config: $ConfigName"
 Write-Log "TP Folder: $TPFolder"
 Write-Log "FP Folder: $FPFolder"
@@ -798,7 +807,7 @@ Write-Host ""
 # Check if Media Server is reachable via action=getstatus
 try {
     $healthCheck = Invoke-WebRequest -Uri "$MediaServerUrl/action=getstatus" -Method Get -TimeoutSec 5 -UseBasicParsing
-    Write-Log "Media Server is reachable at $MediaServerUrl (HTTP $($healthCheck.StatusCode))" "PASS"
+    Write-Log "Media Server is reachable at $MediaServerUrl ($protocol $($healthCheck.StatusCode))" "PASS"
 } catch {
     Write-Log "Cannot reach Media Server at $MediaServerUrl. Ensure it is running." "ERROR"
     Write-Log "Start it with: .\mediaserver.exe from the MediaServer_26.2.0 folder" "WARN"
