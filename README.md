@@ -34,7 +34,8 @@ Edit `config.json` for your environment:
     "ConfigName": "FaceDetection_ObjectRecognition",
     "TPFolder": "C:\\IDOL\\images\\TP",
     "FPFolder": "C:\\IDOL\\images\\FP",
-    "OutputReport": "C:\\IDOL\\code\\reports\\f1_face_object_report.html"
+    "OutputReport": "C:\\IDOL\\code\\reports\\f1_face_object_report.html",
+    "MediaServerOutputDir": "C:\\IDOL\\MediaServer_26.2.0_WINDOWS_X86_64\\output"
 }
 ```
 
@@ -46,6 +47,7 @@ Edit `config.json` for your environment:
 | `TPFolder` | `string` | Path to True Positive images (contain passports) |
 | `FPFolder` | `string` | Path to False Positive images (no passports) |
 | `OutputReport` | `string` | Path where the HTML report will be written |
+| `MediaServerOutputDir` | `string` | MediaServer output directory (where pipeline XML results are written by MediaServer) |
 
 CLI arguments always override config.json values, so you can do one-off runs without editing the file.
 

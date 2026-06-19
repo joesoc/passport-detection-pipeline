@@ -4,5 +4,6 @@
     "ConfigName": "FaceDetection_ObjectRecognition",
     "TPFolder": "C:\\IDOL\\images\\TP",
     "FPFolder": "C:\\IDOL\\images\\FP",
-    "OutputReport": "C:\\IDOL\\code\\reports\\f1_face_object_report.html"
+    "OutputReport": "C:\\IDOL\\code\\reports\\f1_face_object_report.html",
+    "MediaServerOutputDir": "C:\\IDOL\\MediaServer_26.2.0_WINDOWS_X86_64\\output"
 }

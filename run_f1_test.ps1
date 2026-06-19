@@ -22,6 +22,7 @@ $configDefaults = @{
     FPFolder       = "C:\IDOL\images\FP"
     OutputReport   = "C:\IDOL\code\reports\f1_face_object_report.html"
     UseHttps       = $false
+    MediaServerOutputDir = "C:\IDOL\MediaServer_26.2.0_WINDOWS_X86_64\output"
 }
 
 if (Test-Path $configPath) {
@@ -154,7 +155,7 @@ function Invoke-MediaServerProcess {
             
             # Read the output XML file written to disk
             if ($result.SessionToken) {
-                $outputFile = "C:\IDOL\MediaServer_26.2.0_WINDOWS_X86_64\output\$($result.SessionToken)\face_object.xml"
+                $outputFile = Join-Path $MediaServerOutputDir "$($result.SessionToken)\face_object.xml"
                 Write-DebugLog "Looking for output file: $outputFile"
                 if (Test-Path $outputFile) {
                     $result.OutputFilePath = $outputFile
