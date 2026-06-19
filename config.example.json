@@ -1,4 +1,8 @@
 {
     "MediaServerUrl": "http://localhost:14000",
-    "UseHttps": false
+    "UseHttps": false,
+    "ConfigName": "FaceDetection_ObjectRecognition",
+    "TPFolder": "C:\\IDOL\\images\\TP",
+    "FPFolder": "C:\\IDOL\\images\\FP",
+    "OutputReport": "C:\\IDOL\\code\\reports\\f1_face_object_report.html"
 }

@@ -30,7 +30,11 @@ Edit `config.json` for your environment:
 ```json
 {
     "MediaServerUrl": "http://my-mediaserver:14000",
-    "UseHttps": false
+    "UseHttps": false,
+    "ConfigName": "FaceDetection_ObjectRecognition",
+    "TPFolder": "C:\\IDOL\\images\\TP",
+    "FPFolder": "C:\\IDOL\\images\\FP",
+    "OutputReport": "C:\\IDOL\\code\\reports\\f1_face_object_report.html"
 }
 ```
 
@@ -38,32 +42,29 @@ Edit `config.json` for your environment:
 |---|---|---|
 | `MediaServerUrl` | `string` | Base URL of the MediaServer (scheme + host + port) |
 | `UseHttps` | `boolean` | Set to `true` to convert `http://` → `https://` |
+| `ConfigName` | `string` | MediaServer pipeline configuration name |
+| `TPFolder` | `string` | Path to True Positive images (contain passports) |
+| `FPFolder` | `string` | Path to False Positive images (no passports) |
+| `OutputReport` | `string` | Path where the HTML report will be written |
 
-CLI arguments (`-MediaServerUrl`, `-UseHttps`) always override config.json values, so you can do one-off runs without editing the file.
+CLI arguments always override config.json values, so you can do one-off runs without editing the file.
 
 ## Quick Start
 
 ```powershell
 # First time: copy the example config and edit for your environment
 copy config.example.json config.json
-# Edit config.json — set MediaServerUrl and UseHttps
+# Edit config.json — set all paths and settings for your environment
 
 # Default: uses settings from config.json
 .\run_f1_test.ps1
 
-# CLI arguments override config.json when needed
-.\run_f1_test.ps1 -MediaServerUrl "http://other-server:14000"
-.\run_f1_test.ps1 -UseHttps
+# CLI arguments override config.json for one-off runs
+.\run_f1_test.ps1 -MediaServerUrl "http://other-server:14000" -UseHttps
+.\run_f1_test.ps1 -TPFolder "D:\testdata\passports" -OutputReport "D:\reports\benchmark.html"
 
 # Debug mode — verbose tracing for troubleshooting
 .\run_f1_test.ps1 -Debug
-
-# Custom image folders and report output
-.\run_f1_test.ps1 `
-    -TPFolder "D:\testdata\passports" `
-    -FPFolder "D:\testdata\negatives" `
-    -OutputReport "D:\reports\benchmark.html" `
-    -TimeoutSec 180
 ```
 
 ## Parameters
@@ -71,10 +72,10 @@ copy config.example.json config.json
 | Parameter | Type | Default | Description |
 |---|---|---|---|
 | `-MediaServerUrl` | `string` | from `config.json` | Base URL of the MediaServer (scheme + host + port). CLI overrides config. |
-| `-ConfigName` | `string` | `FaceDetection_ObjectRecognition` | Name of the MediaServer configuration to invoke |
-| `-TPFolder` | `string` | `C:\IDOL\images\TP` | Path to True Positive images (contain passports) |
-| `-FPFolder` | `string` | `C:\IDOL\images\FP` | Path to False Positive images (no passports) |
-| `-OutputReport` | `string` | `C:\IDOL\code\reports\f1_face_object_report.html` | Path for the generated HTML report |
+| `-ConfigName` | `string` | from `config.json` | Name of the MediaServer configuration to invoke. CLI overrides config. |
+| `-TPFolder` | `string` | from `config.json` | Path to True Positive images (contain passports). CLI overrides config. |
+| `-FPFolder` | `string` | from `config.json` | Path to False Positive images (no passports). CLI overrides config. |
+| `-OutputReport` | `string` | from `config.json` | Path for the generated HTML report. CLI overrides config. |
 | `-TimeoutSec` | `int` | `120` | Timeout in seconds for each MediaServer API call |
 | `-UseHttps` | `switch` | from `config.json` | Replace `http://` with `https://` in the MediaServer URL. CLI overrides config. |
 | `-Debug` | `switch` | `$false` | Enable verbose tracing: URI, HTTP details, token, XML paths, per-face/object confidence |

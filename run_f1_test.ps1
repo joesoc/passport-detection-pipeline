@@ -4,10 +4,10 @@
 
 param(
     [string]$MediaServerUrl,
-    [string]$ConfigName = "FaceDetection_ObjectRecognition",
-    [string]$TPFolder = "C:\IDOL\images\TP",
-    [string]$FPFolder = "C:\IDOL\images\FP",
-    [string]$OutputReport = "C:\IDOL\code\reports\f1_face_object_report.html",
+    [string]$ConfigName,
+    [string]$TPFolder,
+    [string]$FPFolder,
+    [string]$OutputReport,
     [int]$TimeoutSec = 120,
     [switch]$UseHttps,
     [switch]$Debug
@@ -15,19 +15,37 @@ param(
 
 # Load environment-specific settings from config.json (located next to this script)
 $configPath = Join-Path $PSScriptRoot "config.json"
+$configDefaults = @{
+    MediaServerUrl = "http://localhost:14000"
+    ConfigName     = "FaceDetection_ObjectRecognition"
+    TPFolder       = "C:\IDOL\images\TP"
+    FPFolder       = "C:\IDOL\images\FP"
+    OutputReport   = "C:\IDOL\code\reports\f1_face_object_report.html"
+    UseHttps       = $false
+}
+
 if (Test-Path $configPath) {
     $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
-    # Only use config values if the caller did NOT explicitly pass them via CLI
-    if (-not $PSBoundParameters.ContainsKey("MediaServerUrl") -and $config.MediaServerUrl) {
-        $MediaServerUrl = $config.MediaServerUrl
-    }
-    if (-not $PSBoundParameters.ContainsKey("UseHttps") -and $config.UseHttps) {
-        $UseHttps = [switch]::Present($config.UseHttps)
+    foreach ($key in $configDefaults.Keys) {
+        if (-not $PSBoundParameters.ContainsKey($key)) {
+            $configValue = $config.$key
+            if ($null -ne $configValue) {
+                if ($key -eq "UseHttps") {
+                    Set-Variable -Name $key -Value ([switch]::Present($configValue))
+                } else {
+                    Set-Variable -Name $key -Value ([string]$configValue)
+                }
+            }
+        }
     }
 } else {
     Write-Warning "config.json not found at $configPath — copy config.example.json to config.json and edit it"
-    # Fallback defaults
-    if (-not $MediaServerUrl) { $MediaServerUrl = "http://localhost:14000" }
+    # Apply hardcoded fallbacks for any params not explicitly passed
+    foreach ($key in $configDefaults.Keys) {
+        if (-not $PSBoundParameters.ContainsKey($key)) {
+            Set-Variable -Name $key -Value $configDefaults[$key]
+        }
+    }
 }
 
 # Convert URL scheme from HTTP to HTTPS when the -UseHttps flag is set
