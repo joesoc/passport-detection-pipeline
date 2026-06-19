@@ -1,4 +1,4 @@
-# FaceDetection_ObjectRecognition F1 Benchmark Suite  v1.3.2
+# FaceDetection_ObjectRecognition F1 Benchmark Suite  v1.4.0
 # Tests the pipeline against True Positive and False Positive file sets
 # Generates a detailed HTML report with F1 score and optimization insights
 
@@ -23,6 +23,8 @@ $configDefaults = @{
     OutputReport   = "C:\IDOL\code\reports\f1_face_object_report.html"
     UseHttps       = $false
     MediaServerOutputDir = "C:\IDOL\MediaServer_26.2.0_WINDOWS_X86_64\output"
+    PassportIdentityPattern = "passport|AUS_Passport"
+    PassportDatabasePattern = "passport|AUS_Passport"
 }
 
 if (Test-Path $configPath) {
@@ -266,7 +268,7 @@ function Parse-MediaServerResponse {
                 $objConfidences += $identConf
                 
                 # Check if any recognized object is passport-related
-                if ($identName -match "passport|AUS_Passport" -or $identDB -match "passport|AUS_Passport") {
+                if ($identName -match $PassportIdentityPattern -or $identDB -match $PassportDatabasePattern) {
                     $Result.PassportDetected = $true
                 }
             }

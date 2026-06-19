@@ -35,7 +35,9 @@ Edit `config.json` for your environment:
     "TPFolder": "C:\\IDOL\\images\\TP",
     "FPFolder": "C:\\IDOL\\images\\FP",
     "OutputReport": "C:\\IDOL\\code\\reports\\f1_face_object_report.html",
-    "MediaServerOutputDir": "C:\\IDOL\\MediaServer_26.2.0_WINDOWS_X86_64\\output"
+    "MediaServerOutputDir": "C:\\IDOL\\MediaServer_26.2.0_WINDOWS_X86_64\\output",
+    "PassportIdentityPattern": "passport|AUS_Passport",
+    "PassportDatabasePattern": "passport|AUS_Passport"
 }
 ```
 
@@ -48,6 +50,8 @@ Edit `config.json` for your environment:
 | `FPFolder` | `string` | Path to False Positive images (no passports) |
 | `OutputReport` | `string` | Path where the HTML report will be written |
 | `MediaServerOutputDir` | `string` | MediaServer output directory (where pipeline XML results are written by MediaServer) |
+| `PassportIdentityPattern` | `string` | Regex pattern to match object identity names that indicate a passport |
+| `PassportDatabasePattern` | `string` | Regex pattern to match object database names that indicate a passport |
 
 CLI arguments always override config.json values, so you can do one-off runs without editing the file.
 
