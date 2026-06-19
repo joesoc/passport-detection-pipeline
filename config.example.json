@@ -1,0 +1,4 @@
+{
+    "MediaServerUrl": "http://localhost:14000",
+    "UseHttps": false
+}

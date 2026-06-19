@@ -3,7 +3,7 @@
 # Generates a detailed HTML report with F1 score and optimization insights
 
 param(
-    [string]$MediaServerUrl = "http://localhost:14000",
+    [string]$MediaServerUrl,
     [string]$ConfigName = "FaceDetection_ObjectRecognition",
     [string]$TPFolder = "C:\IDOL\images\TP",
     [string]$FPFolder = "C:\IDOL\images\FP",
@@ -12,6 +12,23 @@ param(
     [switch]$UseHttps,
     [switch]$Debug
 )
+
+# Load environment-specific settings from config.json (located next to this script)
+$configPath = Join-Path $PSScriptRoot "config.json"
+if (Test-Path $configPath) {
+    $config = Get-Content -Path $configPath -Raw | ConvertFrom-Json
+    # Only use config values if the caller did NOT explicitly pass them via CLI
+    if (-not $PSBoundParameters.ContainsKey("MediaServerUrl") -and $config.MediaServerUrl) {
+        $MediaServerUrl = $config.MediaServerUrl
+    }
+    if (-not $PSBoundParameters.ContainsKey("UseHttps") -and $config.UseHttps) {
+        $UseHttps = [switch]::Present($config.UseHttps)
+    }
+} else {
+    Write-Warning "config.json not found at $configPath — copy config.example.json to config.json and edit it"
+    # Fallback defaults
+    if (-not $MediaServerUrl) { $MediaServerUrl = "http://localhost:14000" }
+}
 
 # Convert URL scheme from HTTP to HTTPS when the -UseHttps flag is set
 if ($UseHttps) {

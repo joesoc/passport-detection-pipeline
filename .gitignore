@@ -1,2 +1,5 @@
 # Debug output files
 debug_output.txt
+
+# Environment-specific config (copy config.example.json to config.json and edit)
+config.json
