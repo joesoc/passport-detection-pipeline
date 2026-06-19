@@ -1,4 +1,4 @@
-# FaceDetection_ObjectRecognition F1 Benchmark Suite  v1.2.0
+# FaceDetection_ObjectRecognition F1 Benchmark Suite  v1.3.0
 # Tests the pipeline against True Positive and False Positive file sets
 # Generates a detailed HTML report with F1 score and optimization insights
 
