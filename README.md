@@ -34,6 +34,9 @@ IDOL MediaServer pipeline that detects faces in images, filters candidates via a
     -FPFolder "D:\testdata\negatives" `
     -OutputReport "D:\reports\benchmark.html" `
     -TimeoutSec 180
+
+# Debug mode — verbose tracing for troubleshooting
+.\run_f1_test.ps1 -Debug
 ```
 
 ## Parameters
@@ -47,6 +50,7 @@ IDOL MediaServer pipeline that detects faces in images, filters candidates via a
 | `-OutputReport` | `string` | `C:\IDOL\code\reports\f1_face_object_report.html` | Path for the generated HTML report |
 | `-TimeoutSec` | `int` | `120` | Timeout in seconds for each MediaServer API call |
 | `-UseHttps` | `switch` | `$false` | Replace `http://` with `https://` in the MediaServer URL |
+| `-Debug` | `switch` | `$false` | Enable verbose tracing: URI, HTTP details, token, XML paths, per-face/object confidence |
 
 ## How It Works
 
@@ -69,6 +73,25 @@ Source (image file) → FaceDetect → faceFilter.lua → ObjectRecognition → 
 - **FaceDetect**: Locates faces in the image and returns position/confidence/angle metadata.
 - **faceFilter.lua**: Filters face results (e.g., requires sufficient frontal angle, minimum size) before allowing object recognition.
 - **ObjectRecognition**: Identifies objects (passports) in the face regions. Confidence threshold filtering (≥ 55%) is applied in the PowerShell benchmark script.
+
+## Debugging
+
+Run with the `-Debug` switch for verbose magenta-colored tracing output:
+
+```powershell
+.\run_f1_test.ps1 -Debug
+```
+
+Debug output includes:
+- Full API URI sent to MediaServer
+- HTTP status code, response time, and content length
+- Session token extraction (or raw XML preview if token missing)
+- Output file path check with directory listing on failure
+- Raw XML preview of the output file (first 1000 chars)
+- All track names found in the XML
+- XPath result counts for `FaceDetect.Result` and `ObjectRecognize.Result`
+- Per-face details: confidence, angles, size in image
+- Per-object details: identity name, database, confidence, and threshold pass/fail
 
 ## License
 
