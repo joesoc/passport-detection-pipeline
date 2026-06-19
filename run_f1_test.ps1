@@ -9,13 +9,17 @@ param(
     [string]$FPFolder = "C:\IDOL\images\FP",
     [string]$OutputReport = "C:\IDOL\code\reports\f1_face_object_report.html",
     [int]$TimeoutSec = 120,
-    [switch]$UseHttps
+    [switch]$UseHttps,
+    [switch]$Debug
 )
 
 # Convert URL scheme from HTTP to HTTPS when the -UseHttps flag is set
 if ($UseHttps) {
     $MediaServerUrl = $MediaServerUrl -replace '^http://', 'https://'
 }
+
+# Store flags in script scope so functions can access them
+$script:Debug = $Debug
 
 $ErrorActionPreference = "Stop"
 $script:StartTime = Get-Date
@@ -32,9 +36,17 @@ function Write-Log {
         "WARN"  { "Yellow" }
         "PASS"  { "Green" }
         "FAIL"  { "Red" }
+        "DEBUG" { "Magenta" }
         default { "White" }
     }
     Write-Host "[$ts] [$Level] $Message" -ForegroundColor $color
+}
+
+function Write-DebugLog {
+    param([string]$Message)
+    if ($script:Debug) {
+        Write-Log -Message $Message -Level "DEBUG"
+    }
 }
 
 # ============================================================
@@ -71,17 +83,23 @@ function Invoke-MediaServerProcess {
     
     try {
         $uri = "$MediaServerUrl/action=process&Source=$([uri]::EscapeDataString($FilePath))&ConfigName=$Config&Synchronous=true"
+        Write-DebugLog "URI: $uri"
         
         $response = Invoke-WebRequest -Uri $uri -Method Get -TimeoutSec $Timeout -UseBasicParsing
         $sw.Stop()
         $result.ResponseTimeMs = [math]::Round($sw.Elapsed.TotalMilliseconds, 1)
         $result.StatusCode = $response.StatusCode
         $result.RawXml = $response.Content
+        
+        Write-DebugLog "HTTP $($response.StatusCode) | ResponseTime: $($result.ResponseTimeMs)ms | ContentLength: $($response.Content.Length) chars"
 
         if ($response.StatusCode -eq 200) {
             # Extract session token from response
             if ($response.Content -match '<token>([^<]+)</token>') {
                 $result.SessionToken = $Matches[1]
+                Write-DebugLog "SessionToken extracted: $($result.SessionToken)"
+            } else {
+                Write-DebugLog "WARNING: No <token> found in response. Raw XML (first 500 chars): $($response.Content.Substring(0, [Math]::Min(500, $response.Content.Length)))"
             }
             
             # Check for error in response before declaring success
@@ -98,11 +116,23 @@ function Invoke-MediaServerProcess {
             # Read the output XML file written to disk
             if ($result.SessionToken) {
                 $outputFile = "C:\IDOL\MediaServer_26.2.0_WINDOWS_X86_64\output\$($result.SessionToken)\face_object.xml"
+                Write-DebugLog "Looking for output file: $outputFile"
                 if (Test-Path $outputFile) {
                     $result.OutputFilePath = $outputFile
                     $outputXml = Get-Content -Path $outputFile -Raw -Encoding UTF8
+                    Write-DebugLog "Output file found | Size: $($outputXml.Length) chars"
+                    Write-DebugLog "Output XML (first 1000 chars): $($outputXml.Substring(0, [Math]::Min(1000, $outputXml.Length)))"
                     Parse-MediaServerResponse -Result $result -XmlContent $outputXml
                 } else {
+                    Write-DebugLog "WARNING: Output file NOT found at: $outputFile"
+                    # List what's in the output directory to help diagnose
+                    $parentDir = Split-Path $outputFile -Parent
+                    if (Test-Path $parentDir) {
+                        $contents = (Get-ChildItem $parentDir -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Name) -join ", "
+                        Write-DebugLog "Directory contents of $parentDir : $contents"
+                    } else {
+                        Write-DebugLog "Parent directory $parentDir does not exist"
+                    }
                     $result.ErrorMessage += " | Output file not found: $outputFile"
                 }
             }
@@ -138,9 +168,14 @@ function Parse-MediaServerResponse {
     try {
         [xml]$xml = $XmlContent
 
+        # List all track names found in the XML
+        $allTracks = Select-Xml -Xml $xml -XPath "//track" | ForEach-Object { $_.Node.name }
+        Write-DebugLog "Tracks found in output XML: $($allTracks -join ', ')"
+
         # --- Parse Face Detection Results ---
         # Face data is in <track name="FaceDetect.Result">/<record>/<FaceResult>/<face>
         $faceResults = Select-Xml -Xml $xml -XPath "//track[@name='FaceDetect.Result']/record/FaceResult"
+        Write-DebugLog "FaceDetect.Result XPath returned: $($faceResults.Count) FaceResult node(s)"
         if ($faceResults) {
             $Result.FaceDetected = $true
             $Result.FaceCount = $faceResults.Count
@@ -154,6 +189,7 @@ function Parse-MediaServerResponse {
                     OutOfPlaneAngleY  = if ($face.outOfPlaneAngleY) { [double]$face.outOfPlaneAngleY } else { 0 }
                     PercentageInImage = if ($face.percentageInImage) { [double]$face.percentageInImage } else { 0 }
                 }
+                Write-DebugLog "Face #$($faceConfidences.Count+1): confidence=$($faceInfo.Confidence)% angleX=$($faceInfo.OutOfPlaneAngleX) angleY=$($faceInfo.OutOfPlaneAngleY) sizeInImg=$($faceInfo.PercentageInImage)%"
                 $Result.FaceDetails += $faceInfo
                 $faceConfidences += $faceInfo.Confidence
             }
@@ -163,6 +199,7 @@ function Parse-MediaServerResponse {
         # --- Parse Object Recognition Results ---
         # Object data is in <track name="ObjectRecognize.Result">/<record>/<ObjectRecognitionResult>
         $objResults = Select-Xml -Xml $xml -XPath "//track[@name='ObjectRecognize.Result']/record/ObjectRecognitionResult"
+        Write-DebugLog "ObjectRecognize.Result XPath returned: $($objResults.Count) ObjectRecognitionResult node(s)"
         if ($objResults) {
             $Result.ObjectRecognized = $true
             
@@ -173,8 +210,13 @@ function Parse-MediaServerResponse {
                 $identDB   = if ($identity.database) { $identity.database } else { "" }
                 $identConf = if ($identity.confidence) { [double]$identity.confidence } else { 0 }
                 
+                Write-DebugLog "ObjectRecognition: identity='$identName' db='$identDB' confidence=$identConf (threshold=55)"
+                
                 # Confidence threshold filter: only count results >= 55
-                if ($identConf -lt 55) { continue }
+                if ($identConf -lt 55) {
+                    Write-DebugLog "  -> Filtered OUT (below threshold)"
+                    continue
+                }
                 
                 $objInfo = [PSCustomObject]@{
                     Identity   = "$identName ($identDB)"
@@ -799,6 +841,7 @@ Write-Host ""
 $protocol = if ($UseHttps) { "HTTPS" } else { "HTTP" }
 Write-Log "Protocol: $protocol"
 Write-Log "Server URL: $MediaServerUrl"
+if ($Debug) { Write-Log "DEBUG MODE ENABLED — verbose tracing active" "DEBUG" }
 Write-Log "Config: $ConfigName"
 Write-Log "TP Folder: $TPFolder"
 Write-Log "FP Folder: $FPFolder"
