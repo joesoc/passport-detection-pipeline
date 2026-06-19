@@ -1,4 +1,4 @@
-# FaceDetection_ObjectRecognition F1 Benchmark Suite  v1.3.1
+# FaceDetection_ObjectRecognition F1 Benchmark Suite  v1.3.2
 # Tests the pipeline against True Positive and False Positive file sets
 # Generates a detailed HTML report with F1 score and optimization insights
 
@@ -266,7 +266,7 @@ function Parse-MediaServerResponse {
                 $objConfidences += $identConf
                 
                 # Check if any recognized object is passport-related
-                if ($identName -match "passport|AUS_Passport") {
+                if ($identName -match "passport|AUS_Passport" -or $identDB -match "passport|AUS_Passport") {
                     $Result.PassportDetected = $true
                 }
             }
