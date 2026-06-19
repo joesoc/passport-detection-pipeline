@@ -31,7 +31,7 @@ if (Test-Path $configPath) {
             $configValue = $config.$key
             if ($null -ne $configValue) {
                 if ($key -eq "UseHttps") {
-                    Set-Variable -Name $key -Value ([switch]::Present($configValue))
+                    Set-Variable -Name $key -Value ([switch]$configValue)
                 } else {
                     Set-Variable -Name $key -Value ([string]$configValue)
                 }
@@ -43,7 +43,11 @@ if (Test-Path $configPath) {
     # Apply hardcoded fallbacks for any params not explicitly passed
     foreach ($key in $configDefaults.Keys) {
         if (-not $PSBoundParameters.ContainsKey($key)) {
-            Set-Variable -Name $key -Value $configDefaults[$key]
+            if ($key -eq "UseHttps") {
+                Set-Variable -Name $key -Value ([switch]$configDefaults[$key])
+            } else {
+                Set-Variable -Name $key -Value $configDefaults[$key]
+            }
         }
     }
 }
