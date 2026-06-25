@@ -7,5 +7,23 @@
     "OutputReport": "C:\\IDOL\\code\\reports\\f1_face_object_report.html",
     "MediaServerOutputDir": "C:\\IDOL\\MediaServer_26.2.0_WINDOWS_X86_64\\output",
     "PassportIdentityPattern": "passport|AUS_Passport",
-    "PassportDatabasePattern": "passport|AUS_Passport"
+    "PassportDatabasePattern": "passport|AUS_Passport",
+    "ThreadCount": 1,
+    "LoadTestIterations": 1,
+    "MonitorEnabled": false,
+    "AutoStart": false,
+    "MediaServerActionsDir": "C:\\IDOL\\MediaServer_26.2.0_WINDOWS_X86_64\\actions",
+    "MediaServerLogsDir": "C:\\IDOL\\MediaServer_26.2.0_WINDOWS_X86_64\\logs",
+    "MediaServerStartScript": "C:\\IDOL\\MediaServer_26.2.0_WINDOWS_X86_64\\start-mediaserver.bat",
+    "MediaServerProcessName": "mediaserver",
+    "MediaServerCrashDumpPath": "C:\\IDOL\\MediaServer_26.2.0_WINDOWS_X86_64\\autn_report.dmp",
+    "MonitorProcess": {
+        "Enabled": true,
+        "ProcessName": "mediaserver",
+        "SampleIntervalSec": 2,
+        "OutputDir": "C:\\IDOL\\code\\monitor_logs",
+        "CrashDumpDir": "C:\\IDOL\\MediaServer_26.2.0_WINDOWS_X86_64",
+        "MediaServerUrl": "http://localhost:14000",
+        "HealthCheck": true
+    }
 }
